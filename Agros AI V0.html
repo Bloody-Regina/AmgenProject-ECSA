@@ -1003,17 +1003,48 @@
       if (description.includes('rain') || description.includes('drizzle')) {
         diseaseRisks.push(...marketDatabase.diseases.wetConditions);
       }
-      
-      // Always show the premium upgrade message
+
+      if (diseaseRisks.length === 0) {
+        diseaseSolutionsDiv.innerHTML = `
+          <div class="premium-section">
+            <h3>Disease Solutions <span class="premium-badge">PREMIUM</span></h3>
+            <p style="color:#2e7d32;">No disease risks detected for current conditions.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const uniqueRisks = Array.from(new Set(diseaseRisks));
+      const solutionsHtml = uniqueRisks.map(name => {
+        const entry = diseaseSolutionsDatabase[name];
+        if (!entry) {
+          return `
+            <div class="detail-item" style="text-align:left;">
+              <div class="detail-label">${name}</div>
+              <div class="detail-value">No detailed solution available.</div>
+            </div>
+          `;
+        }
+        const solutionList = entry.solutions
+          .map(item => `<li style="margin-bottom:4px;">${item}</li>`)
+          .join('');
+
+        return `
+          <div class="detail-item" style="text-align:left;">
+            <div class="detail-label">${name}</div>
+            <div style="font-size:0.9rem;color:#2e7d32;margin-bottom:6px;">${entry.description}</div>
+            <div style="font-size:0.85rem;color:#1b5e20;font-weight:bold;">Treatment</div>
+            <ul style="margin:6px 0 8px 16px;padding:0;">${solutionList}</ul>
+            <div style="font-size:0.85rem;color:#1b5e20;font-weight:bold;">Prevention</div>
+            <div style="font-size:0.9rem;color:#1b5e20;">${entry.prevention}</div>
+          </div>
+        `;
+      }).join('');
+
       diseaseSolutionsDiv.innerHTML = `
         <div class="premium-section">
-          <div style="color: #ff3333;">
-            <h3>🩺 Disease Solutions <span class="premium-badge">PREMIUM</span></h3>
-            <p>Unable to load disease solutions. Please check your plan or upgrade to Premium to access detailed disease treatment and prevention strategies.</p>
-            <p style="margin-top: 0.5rem; font-size: 0.9rem; color: #666;">
-              <strong>Premium includes:</strong> Disease identification, treatment solutions, prevention methods, and expert recommendations.
-            </p>
-          </div>
+          <h3>Disease Solutions <span class="premium-badge">PREMIUM</span></h3>
+          <div class="weather-details">${solutionsHtml}</div>
         </div>
       `;
     }
